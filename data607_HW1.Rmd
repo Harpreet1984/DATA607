@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+DATA 607 - ASSIGNMENT 1
+
+Harpreet Shoker
+
+Loading Data (csv file) into R 
+
+```{r }
+mushroom_datafile <- read.csv(url('https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data'))
+head(mushroom_datafile)
+```
+
+Loading library plyr to use rename function
+```{r }
+library(plyr)
+mushroom_datafile1 <-rename(mushroom_datafile, c("p" = "classtype", "x" = "cap-shape", "s" = "cap-surface", "n" = "cap-color", "t" = "bruises", "p.1"="odor", "f" = "gill-attachement", "c" = "gill-spacing", "n.1" = "gill-size", "k" = "gill-color", "e" = "stalk shape", "e.1" = "stalk root", "s.1" = "stalk surface above ring", "s.2" = "stalk surface below ring", "w" = "stalk color above veil", "w.1" = "stalk color below veil", "p.2" = "veil type", "w.2" = "veil-color", "o" = "ring number", "p.3" = "ring type", "k.1" = "spore print color", "s.3" = "population", "u" = "habitat" ))
+head(mushroom_datafile1)
+```
+
+Creating subset of data
+here i m using classtype , odor ,gill color , veil color , habitat
+
+```{r }
+mushroon_subset <- subset(mushroom_datafile1,select=c("classtype","odor","gill-size","veil-color","habitat"))
+head(mushroon_subset)
+```
+
+
+```{r }
+levels(mushroon_subset$classtype) = c("edible", "poisonous")
+levels(mushroon_subset$odor) = c("almond", "anise", "creosote", "fishy", "foul", "musty", "none", "pungent", "spicy")
+levels(mushroon_subset$`gill-size`) = c("broad", "narrow")
+levels(mushroon_subset$`veil-color`) = c("brown", "orange", "white", "yellow")
+levels(mushroon_subset$habitat) = c("woods", "grasses", "leaves", "meadows", "paths", "urban", "waste")
+head(mushroon_subset)
+```
+
+
+
