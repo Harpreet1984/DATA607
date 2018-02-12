@@ -1,0 +1,86 @@
+---
+title: "DATA607_Assignment2"
+author: "Harpreet Shoker"
+output:
+  html_document:
+    css: ./lab.css
+    highlight: pygments
+    theme: cerulean
+  pdf_document: default
+---
+In this assignment we have Choose ten recent popular movies.  Ask at least five people that you know (friends, family, classmates, imaginary friends) to rate each of these movie that they have seen on a scale of 1 to 5.  Take the results (observations) and store them in a SQL database.From the database we have different queries to gain insight of rating information.
+
+### Environment Setup
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r }
+library(RMySQL)
+drv = dbDriver("MySQL")
+con <- dbConnect(drv, user = 'root', password = 'mysql', dbname = 'mysql')
+```
+
+### Movies from mysql database
+``` {sql connection=con}
+SELECT * FROM mysql.movie_list
+```
+
+### Ratings Definations from mysql database
+``` {sql connection=con}
+SELECT * FROM mysql.movie_rating
+```
+
+### Users from mysql database
+``` {sql connection=con }
+SELECT * FROM mysql.user_list
+```
+
+### Movie Ratings from mysql database
+``` {sql connection=con}
+SELECT * FROM mysql.user_movie_ratinglist
+```
+
+### Movie ordered by Genre and Rating
+In this query we want to find out the rating of a movie based on its genre. This queries give an idea about how a pertiuclar movie is doing within its category.
+```{r }
+rating_genre <- dbSendQuery(con, "select distinct movies.genre, movies.movie_name, movies.movie_year, ratings.rating_description 
+from mysql.movie_list movies, mysql.movie_rating ratings, mysql.user_list userlist, mysql.user_movie_ratinglist ratingLists
+where ratingLists.user_id = userlist.user_id
+and ratingLists.movie_id = movies.movie_id
+and ratingLists.rating_id = ratings.rating_id 
+order by movies.genre, ratings.rating_description ")
+dbFetch(rating_genre)
+
+```
+
+### Movie order by Age, Ratings and Genre
+In this query we want to find how a movie is performing across different age group.We want to see if there is a correlation between age group and movie genre.
+```{r }
+rating_age <- dbSendQuery(con, "select userlist.user_age, movies.movie_name, movies.genre, ratings.rating_description 
+from mysql.movie_list movies, mysql.movie_rating ratings, mysql.user_list userlist, mysql.user_movie_ratinglist ratingLists
+where ratingLists.user_id = userlist.user_id
+and ratingLists.movie_id = movies.movie_id
+and ratingLists.rating_id = ratings.rating_id 
+order by userlist.user_age, ratings.rating_description, movies.genre")
+dbFetch(rating_age)
+
+```
+
+### Movie order by Country, Ratings, Genre
+in this query we want to find how a movie is performing across different countries. We want to see if there is a correlation between people's interest in movies across different countries.
+```{r }
+rating_country <- dbSendQuery(con, "select distinct userlist.user_country, movies.genre, movies.movie_name,ratings.rating_description 
+from mysql.movie_list movies, mysql.movie_rating ratings, mysql.user_list userlist, mysql.user_movie_ratinglist ratingLists
+where ratingLists.user_id = userlist.user_id
+and ratingLists.movie_id = movies.movie_id
+and ratingLists.rating_id = ratings.rating_id 
+order by userlist.user_country, ratings.rating_description, movies.genre")
+dbFetch(rating_country)
+
+```
+
+### Close db connection
+```{r }
+dbDisconnect(con)
+```
