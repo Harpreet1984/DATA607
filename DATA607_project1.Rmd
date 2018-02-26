@@ -1,0 +1,117 @@
+---
+title: "DATA607_Project1"
+author: "Harpreet Shoker"
+output:
+  html_document:
+    highlight: pygments
+    theme: cerulean
+  pdf_document: default
+
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#### PROJECT 1
+In this project, we’re given a text file with chess tournament results where the information has some structure.Here is how the structure looks like in the below table
+```{r }
+# Load packages
+library(stringr)
+library(data.table)
+# Reading the data file and skipping header block
+chessTournament <- read.csv("https://raw.githubusercontent.com/Harpreet1984/DATA607/master/tournamentinfo.txt", sep = ",", skip = 3)
+
+# Sample raw input data
+head(chessTournament)
+```
+
+#Remove the dashed lines
+```{r }
+chessTournamentFiltered <- chessTournament[!str_detect (chessTournament[,1], "^-+$"),]
+```
+
+#combining multiple customer rows into one
+```{r }
+customerCombined <- str_c(chessTournamentFiltered[seq(1, length(chessTournamentFiltered), 2)], chessTournamentFiltered[seq(2, length(chessTournamentFiltered), 2)], sep = "")
+customerCombined <- data.frame(str_split_fixed(customerCombined, "\\||/|->", n = Inf))
+```
+
+#update column headers, setup computational columns
+```{r}
+colnames(customerCombined) <- c("PlayerId",
+ "PlayerName",           
+ "PlayerPoints",         
+ "Game1",                 
+ "Game2",
+ "Game3",
+ "Game4",
+ "Game5",
+ "Game6",
+ "Game7",
+ "PlayerState",          
+ "UscfId" ,
+ "PlayerRatingPre",
+ "PlayerRatingPost",
+ "nValue",
+ "value1",
+ "value2",
+ "value3",
+ "value4",
+ "value5",
+ "value6",
+ "value7"
+)
+ 
+customerCombined$PlayerRatingPre <- as.numeric(str_replace(customerCombined$PlayerRatingPre, "R: *([:digit:]+)(P.*)?", "\\1"))
+
+customerCombined$PlayerRatingPost <- as.numeric(str_replace(customerCombined$PlayerRatingPost, "([:digit:]+)(P.*)?", "\\1"))
+
+customerCombined$`AvePreRating` <- as.numeric(0)
+```
+
+#Create derived table, for getting average opponent.
+```{r}
+opp1 <- data.frame(as.numeric(str_extract_all(customerCombined$Game1,"[[:digit:]]{1,}")))
+opp2 <- data.frame(as.numeric(str_extract_all(customerCombined$Game2,"[[:digit:]]{1,}")))
+opp3 <- data.frame(as.numeric(str_extract_all(customerCombined$Game3,"[[:digit:]]{1,}")))
+opp4 <- data.frame(as.numeric(str_extract_all(customerCombined$Game4,"[[:digit:]]{1,}")))
+opp5 <- data.frame(as.numeric(str_extract_all(customerCombined$Game5,"[[:digit:]]{1,}")))
+opp6 <- data.frame(as.numeric(str_extract_all(customerCombined$Game6,"[[:digit:]]{1,}")))
+opp7 <- data.frame(as.numeric(str_extract_all(customerCombined$Game7,"[[:digit:]]{1,}")))
+
+opps <- cbind(customerCombined$PlayerId, customerCombined$PlayerName, opp1, opp2, opp3, opp4, opp5, opp6, opp7)
+names(opps) <- c("Player Id","Player Name","Opp 1","Opp 2","Opp 3","Opp 4","Opp 5","Opp 6","Opp 7")
+
+opps[is.na(opps)] <- as.numeric(0)
+
+```
+
+#Extract opponent average points
+```{r}
+for (k in 3:9){
+  for (j in 1:dim(customerCombined)[1]){
+    for (i in 1:dim(customerCombined)[1]){
+      if (as.numeric(opps[j,k]) == as.numeric(customerCombined$PlayerId[i])){
+         customerCombined$AvePreRating[j] <- as.numeric(customerCombined$AvePreRating[j]) + as.numeric(customerCombined$PlayerRatingPre[i])
+      }
+    }  
+  }
+}  
+
+customerCombined$AvePreRating  <- round(as.numeric(customerCombined$AvePreRating) / 7,0)
+
+head(customerCombined)
+```
+
+Our aim here is to create an R Markdown file that generates a .CSV file (that could for example be imported into a SQL database)
+with the following information for all of the player
+1. Player Name
+2. Player State
+3. Total points
+4. Player Pre-Rating,
+5. Average Opponents Raing
+
+#generate csv file
+```{r }
+write.table(customerCombined[, c(2, 3, 11, 13, 24)], file = "Harpreet-chesstournamentInfo.csv",row.names=FALSE, na="",col.names = c("Player Name", "Points", "Player State", "Pre Rating", "Opponent Avg Rating"), sep=",")
+```
+
