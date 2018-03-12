@@ -1,0 +1,205 @@
+---
+title: "DATA605_Project2"
+author: "Harpreet Shoker"
+output:
+  html_document:
+    css: lab.css
+    highlight: pygments
+    theme: flatly
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##### Environment setup
+
+```{r }
+library(stringr)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(tibble)
+library(ggplot2)
+```
+
+For 1st data set i have picked World population data from discussion by steven which has
+data set showing the population of the world's countries from 1980 to 2010
+
+### 1 Data - World Population
+
+##### Loading Data set for World population
+```{r world population data}
+countryData <- read.csv(file="https://raw.githubusercontent.com/Harpreet1984/DATA607/master/populationbycountry19802010millions.csv", header=TRUE, sep=",")
+countryDataTidy <-  countryData %>% gather ("Year", "population", 2:32) #using gather()
+head(countryDataTidy)
+```
+
+##### Tidying Data
+
+Removing all the rows that have NA and -- as populations group data based on country.
+Calculate percentage change for the entire duration for each country.
+```{r grouped}
+countryDataFilteredGrouped <- countryDataTidy %>% filter (!population %in% c("--", NA) ) %>% group_by(X) %>% summarise( populationChange = (last(as.numeric(population)) - first(as.numeric(population)))/first(as.numeric(population)))
+countryDataFilteredGrouped
+```
+
+##### Data Analaysis
+
+Find the country that has the maximum population growth during this duration
+```{r }
+countryWithMaxPopulationGrowth <-  countryDataFilteredGrouped %>% filter(populationChange ==  max(populationChange) )
+countryWithMaxPopulationGrowth
+```
+So here we found that the country that has maximum population growth during the entire duration is United Arab emirates
+
+Find the country that has the minimum population growth during this duration
+```{r }
+countryWithMinPopulationGrowth <-  countryDataFilteredGrouped %>% filter(populationChange ==  min(populationChange) )
+countryWithMinPopulationGrowth
+```
+From the above result we can conclude that population percentage has decreased for montserrat by 5.64 %
+
+### 2 Data - Time Spent (Male vs Female)
+
+#### For 2nd data set Time spent as discussed by Nicholas this dataset on time use by gender and by country has variables include eating, sleeping, employment, travel, school, study, walking the dog, etc
+
+##### Laoding Data
+```{r }
+myurl <- "https://raw.githubusercontent.com/Harpreet1984/DATA607/master/TimeUse%20(1).csv"
+time_info <- read.csv(myurl, header= TRUE,sep=",",stringsAsFactors=FALSE)
+kable(time_info)
+```
+
+##### Tidying and analysis
+
+```{r }
+timedata <- time_info
+library(tibble)
+timedata <- as_data_frame(timedata)
+timedata <- timedata %>% rename(Country = GEO.ACL00)
+```
+
+Converting the time spent on personal care into minutes by removing the colon and then calculating mean of total time(personal care)
+
+```{r }
+
+timedata_PC <- timedata %>%
+              separate ("Personal.care" , c("PC_Min", "PC_sec"), sep=":")
+timedata_PC <-  timedata_PC %>%
+               mutate(PC_TotalSec= (as.numeric(PC_Min) * 60) + as.numeric(PC_sec))
+timedata_PC <- timedata_PC %>%
+              group_by(SEX) %>% summarise(mean= mean(PC_TotalSec))
+kable(timedata_PC)
+```
+
+##### Analysis:- Here from the above results we see that Females spent more time in Personal care compared to Males
+
+Converting the time on eating in minutes by removing the colon and calculating mean of total time(eating)
+
+```{r }
+timedata_Eat <- timedata %>%
+              separate ("Eating" , c("E_Min", "E_sec"), sep=":")
+timedata_Eat <-  timedata_Eat %>%
+               mutate(E_TotalSec= (as.numeric(E_Min) * 60) + as.numeric(E_sec))
+timedata_Eat <- timedata_Eat %>%
+              group_by(Country,SEX) %>% summarise(mean= mean(E_TotalSec))
+timedata_Eat
+```
+
+##### Analysis :- From the above subset we can infer that Males spend more time in eating compared to females for most of the countries.
+
+```{r }
+timedata_Sleep <- timedata %>%
+              separate ("Sleep" , c("S_Min", "S_sec"), sep=":")
+timedata_Sleep <-  timedata_Sleep %>%
+               mutate(S_TotalSec= (as.numeric(S_Min) * 60) + as.numeric(S_sec))
+timedata_Sleep <- timedata_Sleep %>%
+              group_by(Country,SEX) %>% summarise(mean= mean(S_TotalSec))
+timedata_Sleep
+```
+
+##### Analysis :- From the above subset we can infer that Males spend less time in sleeping compared to females for most of the countries.
+
+### 3. Data -sales-tax credits from the government of Canada
+
+##### Loading data
+
+```{r credit benefits}
+craCreditBenefit <- read.csv(file="https://raw.githubusercontent.com/Harpreet1984/DATA607/master/CRA_Credit_Benefit.csv", header=TRUE, sep=",")
+kable(craCreditBenefit)
+```
+
+##### tidying data set
+
+```{r credit benefits Amount Analysis}
+craCreditBenefitAmountAnalysis <- craCreditBenefit %>% select(Province, X5K_amount, X5K_10K_amount, X10K_15K_amount, X15K_20K_amount, X20K_25K_amount, X25K_30K_amount, X30K_35K_amount, X35K_40K_amount, X40K_45K_amount, X45K_50K_amount, X50K_55K_amount, X55K_60K_amount, X60K_amount)
+
+craCreditBenefitAmountAnalysisTidy <- craCreditBenefitAmountAnalysis %>% gather("Category", "Amount",  2:14)
+craCreditBenefitAmountAnalysisTidy$Amount = gsub(",", "",craCreditBenefitAmountAnalysisTidy$Amount)
+craCreditBenefitAmountAnalysisTidy$Amount = gsub("\\$", "",craCreditBenefitAmountAnalysisTidy$Amount)
+craCreditBenefitAmountAnalysisTidy$Amount = as.numeric (gsub("^$", "0",craCreditBenefitAmountAnalysisTidy$Amount))
+```
+
+##### Analyzing data set
+
+Here we are calculating Maximum Credit Benefit Per province
+
+```{r Max Credit Benefit per Provice}
+
+maxCreditBenefitByProvince <- craCreditBenefitAmountAnalysisTidy %>% group_by(Province) %>% summarise(Amount = max(Amount))
+kable(maxCreditBenefitByProvince)
+```
+```{r }
+myggplot <- ggplot(maxCreditBenefitByProvince, aes(x = Province, y = Amount)) +
+  geom_bar(stat = "identity")
+myggplot <- myggplot + theme(axis.text.x = element_text(face="bold", color="#993333", 
+                           size=14, angle=90)) 
+ myggplot
+ 
+ 
+```
+
+
+
+```{r Max Credit Benefit per Category}
+maxCreditBenefitByCategory <- craCreditBenefitAmountAnalysisTidy %>% group_by(Category) %>% summarise(Amount = max(Amount))
+kable(maxCreditBenefitByCategory)
+```
+```{r }
+library(ggplot2)
+myggplot1 <- ggplot(maxCreditBenefitByCategory, aes(x = Category, y = Amount)) +
+  geom_bar(stat = "identity")
+myggplot1 <- myggplot1 + theme(axis.text.x = element_text(face="bold", color="#993333", 
+                           size=14, angle=90)) 
+ myggplot1
+```
+
+
+```{r credit benefits Freq Analysis}
+craCreditBenefitFreqAnalysis <- craCreditBenefit %>% select(Province, X5K_freq, X5K_10K_freq, X10K_15K_freq, X15K_20K_freq, X20K_25K_freq, X25K_30K_freq, X30K_35K_freq, X35K_40K_freq, X40K_45K_freq, X45K_50K_freq, X50K_55K_freq, X55K_60K_freq, X60K_freq)
+
+craCreditBenefitFreqAnalysisTidy <- craCreditBenefitFreqAnalysis %>% gather("Category", "Amount",  2:14)
+craCreditBenefitFreqAnalysisTidy$Amount = gsub(",", "",craCreditBenefitFreqAnalysisTidy$Amount)
+craCreditBenefitFreqAnalysisTidy$Amount = as.numeric (gsub("^$", "0",craCreditBenefitFreqAnalysisTidy$Amount))
+```
+
+
+
+
+```{r Max Credit Frequency per Provice}
+maxCreditFreqByProvince <- craCreditBenefitFreqAnalysisTidy %>% group_by(Province) %>% summarise(max(Amount))
+kable(maxCreditFreqByProvince)
+
+```
+
+```{r Max Credit Freq per Category}
+maxCreditFreqByCategory <- craCreditBenefitFreqAnalysisTidy %>% group_by(Category) %>% summarise(max(Amount))
+kable(maxCreditFreqByCategory)
+```
+
+Based on the above graphs, Ontario and montreal province got the maxmimum benefit credits and have highest frequencies. This makes sense as these two provinces are have highest number of working professionals.
+
+Based on the general normal as the income bracket goes up the tax credit benefits decrease. This is  confirmed with the graphs, there are substantial drops in the tax credit as the category goes above 40k.
