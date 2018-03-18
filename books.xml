@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<books>
+    <Book>
+      <title>Java Concurrency in Practice 1st Edition</title>
+      <author>Brian Goetz,Tim Peierls,Joshua Bloch</author>
+      <category>Computer</category>
+      <isbn>0321349601</isbn>
+      <rating>4.5</rating>
+    </Book>
+    <Book>
+      <title>First Design Patterns: A Brain-Friendly Guide 1st Edition</title>
+      <author>Eric Freeman,Bert Bates,Kathy Sierra</author>
+      <category>Computer</category>
+      <isbn>0596007124</isbn>
+      <rating>4</rating>
+    </Book>
+    <Book>
+      <title>Why we believe what we believe</title>
+      <author>Andrew B. Newberg, Mark Robert Waldman</author>
+      <category>Spirituality</category>
+      <isbn>743274970</isbn>
+      <rating>4</rating>
+    </Book>
+  </books>
