@@ -1,0 +1,41 @@
+---
+title: "Assignment 7"
+author: "Harpreet Shoker"
+output:
+  html_document:
+    css: ./lab.css
+    highlight: pygments
+    theme: cerulean
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library("XML")
+library("RCurl")
+library("jsonlite")
+library("knitr")
+
+```
+
+```{r loadXML, include=TRUE}
+booksXmlObj = getURL("https://raw.githubusercontent.com/Harpreet1984/DATA607/master/books.xml")
+books = xmlToDataFrame(booksXmlObj, stringsAsFactors=FALSE)
+kable(books)
+```
+
+```{r loadJson, include=TRUE}
+booksJsonObj = getURL("https://raw.githubusercontent.com/Harpreet1984/DATA607/master/books.json")
+books = fromJSON(booksJsonObj)
+kable(books)
+
+```
+
+```{r loadHtml, include=TRUE}
+booksHtmlObj = getURL("https://raw.githubusercontent.com/Harpreet1984/DATA607/master/books.html")
+
+books = readHTMLTable(booksHtmlObj, header = TRUE, as.data.frame = TRUE, trim = TRUE, stringsAsFactors = FALSE)
+
+kable(books)
+
+```
