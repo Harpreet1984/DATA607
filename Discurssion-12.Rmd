@@ -1,0 +1,46 @@
+---
+title: "Discurssion-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Here are the various elements of Recommender System used in Department of Defence and Intelligence community
+
+####Information Filtering 
+ Recommender systems do not singlehandedly convert data to knowledge; they are just one component of the information pipeline.Sensors collect data, data processing turns those bytes of data into useful pieces of information, and then recommender systems help to filter that information into the most relevant pieces from which a human can extract knowledge and take action.
+ 
+####User Behaviour
+The value of having computers learn from user behavior rather than apply prescribed rules or heuristics is that the users are never required to explicitly state what the rules are. The rules by which users make decisions are inferred from the way the users act. This utilization of user behavior rather thanheuristics enables recommender systems to reflect nuances in individual human preferences that would
+otherwise be difficult to quantify.
+
+####Suggest information
+Recommender systems operate under a "push" rather than a "pull" paradigm. An information-retrievalsystem, such as a search engine, is guided by a query submitted by the user-a pull for information. Recommender systems, on the other hand, utilize user behavior and context history to ascertain the needs of users and are therefore equipped to predict or prescribe, i.e., push, new information to the user.
+
+####End User goals
+The main distinction between recommender systems and the broader class of filtering and sorting techniques is the applicability of the output of a recommender system to the needs of a particular user or group of similar users.
+
+![Figure1](C:\\Users\\naman\\Documents\\Harpreet\\CUNY\\DATA607\\Discurssion-12\\Figure_1.JPG)
+Here are the list of recommendation system used to improve cyber security.
+
+###Dynamic Customization of Content Filtering:-
+The objective of Dynamic Customization of Content Filtering (DCCF) is to allow an analyst to perform on-the-fly customization of content filtering (for example, open-source social media data mining) on the basis of simple relevance feedback acquired during the inspection of filtered content.
+First, the analyst sets the parameters of an initial data-stream filter (e.g., keywords, geographical area, time interval) to mine for content of interest. Typically, as when keyword filters are used on social media data, this approach will lead to a mixture of relevant content embedded within various types of irrelevant content. While reviewing the content, the analyst provides simple binary feedback (indicating relevance or irrelevance) as desired and submits this feedback to the system. The DCCF model uses this feedback to create a secondary filter to remove irrelevant data that passes through the first filter.DCCF model is generated on the fly (during analyst use) every time new feedback is submitted, thus improving content filtering as the user increasingly interacts with DCCF. 
+![Figure2](C:\\Users\\naman\\Documents\\Harpreet\\CUNY\\DATA607\\Discurssion-12\\Figure_2.JPG)
+
+###Delve System:-
+The goal of Delve is to develop an approach for recommending documents to analysts who are answering broad, complex questions. This task is particularly suited for recommender systems because analysts are often uncertain as to what relevant information may be available to them and therefore are ill-equipped to find all the information that they need via precise queries only. The Delve system employs a hybrid recommender that calculates both individual document characteristics (e.g., word count, number of entities) and collective browsing behavior (e.g., identification of articles that tend to co-occur or follow others in a browsing path). Using these calculations along with dimensionality-reduction techniques, Delve significantly outperforms baseline approaches 
+
+###Global Pattern Search at Scale:-
+The Global Pattern Search at Scale (GPSS) is a scalable visual analytics platform to support the analysis of unstructured geospatial intelligence. With GPSS, analysts can interactively explore the document corpus at multiple geospatial resolutions, identifying patterns that cut across various data dimensions, and can uncover key events in both space and time. The tool includes an interactive visualization featuring a map overlaid with document clusters and events, search and filtering options, a timeline, or a word cloud.
+![Figure3](C:\\Users\\naman\\Documents\\Harpreet\\CUNY\\DATA607\\Discurssion-12\\Figure_3.JPG)
+
+###Structured Knowledge Space :-
+Structured Knowledge Space (SKS) is an end-to-end software system that combines information extraction, information retrieval, and natural language processing to intelligently explore a corpus of unstructured documents, such as intelligence reports of cyber threats. The SKS suite of tools extracts entities and creates structured metadata for each document to improve its searchability.  With this metadata, analysts can find all documents that refer to a single organization or person (even when that entity has several aliases or variations), that contain a geospatial reference within a certain distance of a location, or that reference a time within a specified date range. Currently, SKS operates under a "pull" rather than a "push" paradigm (i.e., the user searches and browses rather than the system making recommendations). 
+![Figure4](C:\\Users\\naman\\Documents\\Harpreet\\CUNY\\DATA607\\Discurssion-12\\Figure_4.JPG)
+
+###Cyber Human Language Technology Analysis, Reasoning, and Inference for Online Threats :-
+Through the Cyber Human Language Technology (HLT) Analysis, Reasoning, and Inference for Online Threats (CHARIOT) program, we are developing an interactive filtration system to automatically identify documents that are relevant to analysts' current investigations. With CHARIOT, analysts are presented with online discussions concerning cyber attack methods, defense strategies, and tools' effectiveness through the automated examination and classification of forum threads. CHARIOT leverages techniques such as topic classification, entity recognition, and sentiment analysis (i.e., opinion mining) to separate malicious cyber discussions from irrelevant discussions.
+![Figure5](C:\\Users\\naman\\Documents\\Harpreet\\CUNY\\DATA607\\Discurssion-12\\Figure_5.JPG)
