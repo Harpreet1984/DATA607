@@ -1,0 +1,196 @@
+---
+title: "CANADIAN HOUSEHOLD DEBT DETERMINANTS"
+author: "Harpreet Kaur Shoker, Krishna Rajan"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loadFile, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+# load data
+financial_survey_raw <- read.csv("Data/Raw_data_from_Source.csv")
+```
+
+## Part 1 - Introduction:
+Canada is currently experiencing record-breaking levels of household debt. Consumer spending is central to the Canadian economy and therefore to financial stability. However, with the household debt ratio reaching 163% there is a growing concern that households are overextended. Household debt reporting often mentions low interest rates and rising real estate prices as the main drivers. I want to  build a model that could accurately predict household debt levels for different types of households across ontario, taking into account a variety of both quantitative and qualitative factors.
+
+
+## Part 2 - Data:
+
+### 2.1 - Definations
+Before proceeding, Here are few definition for "household". According Statistics Canada, a household "refers to a person or group of persons who occupy the same dwelling and do not have a usual place of residence elsewhere in Canada or abroad."  
+Moreover, debt is defined as "An amount of money borrowed by one party from another". More specific assumptions which will be detailed below.
+
+
+### 2.2 - Data Sources
+Our data collection process started with researching Statscan and other online resources for survey results related to household finances. The dataset was not available directly through Statistics Canada's online page, however, I was able to obtain the data via the University of Toronto online Database. 
+
+We found The 'Survey of Financial Security 2005', a comprehensive, Canada-wide survey that uses 5,276 households to represent the approximately 12.5 million household population of Canada at the time. Moreover, each household contained 86 predictor ("x"variables).
+
+
+### 2.3 - Sampling method
+We stratified our survey data (focusing only on Ontario) which reduced our data points to 1390. Furthermore, we filtered our data sets based on the following conditions:
+* Total debt over $1 Million
+* Total debt of $0
+* A primary mortgage of zero
+* Removing all the derived (subtotal) that influence the model.
+
+```{r }
+financial_survey_converted = subset(financial_survey_raw, subset=(wdtotal < 1000000))
+
+financial_survey_converted = subset(financial_survey_raw, subset=(wdtotal != 0))
+financial_survey_converted = subset(financial_survey_raw, subset=(wdprmor != 0))
+financial_survey_converted = subset(financial_survey_raw, subset=(region == 3))
+financial_survey_converted <- subset(financial_survey_converted, select = c(-wastdept, -wastmuic, -wastbond , -waststck, -wastrest , -wastvhle , -wastonof , -wdstomor , -wdstcred , -wdstvhln ,  -wdstodbt    ) )
+
+financial_survey_converted <- sapply(financial_survey_converted, as.numeric)
+financial_survey_converted = as.data.frame(financial_survey_converted)
+
+```
+
+
+## Part 3 - Exploratory data analysis:
+
+### 3.2 - Descriptive Statistics
+We used descriptive statistics to analyze different trends and variation between Canada and Ontario. The following table shows these observations
+
+wdTotal  | Canada | Ontario 
+------------------ | ------------------ | ------------------
+Mean | 131,035.53 | 161,122.19 
+Median | 102,087.5 | 131,500 
+Mode | 100,000 | 100,000
+Standard Deviation | 107,635.42 | 120,164.53 
+Standard Error | 2674.22 | 5484.74
+
+
+Ontario dataset contains around 480 sample points (once the filtering complete). The mean debt level is 161,122.18 with a range from 2,300 to 950,000. The dataset is skewed towards the right with a value of 2.10. This indicates there are some extreme debt values on the right side contributing to skewness. Because there are extreme values to the right, medium debt (131,500) is less than the mean household debt(161,122). Mode debt value of 100,000 indicates there are quite a few number of household with debt level of 100,000 , which is less than both mean and medium.
+
+Standard deviation value is 120,164 which indicate some variability in the household debt levels. The coefficient of variance is 0.74, which mean there is good amount variability within dataset. This variability could be attributed to multiple household related factors.
+When compared to the Canadian household debt level, Ontario debt level have tighter variance. This can attribute to similar household economics condition with a region.
+
+
+```{r summarize_dataStructure for ontario, echo=FALSE, results='hide',  eval=TRUE}
+by(financial_survey_raw$wdtotal, financial_survey_raw$region, summary)
+by(financial_survey_raw$wdtotal, financial_survey_raw$region, sd)
+by(financial_survey_raw$wdtotal, financial_survey_raw$region, length)
+```
+
+```{r summarize_dataStructure for Whole, echo=FALSE, results='hide',  eval=TRUE}
+by(financial_survey_converted$wdtotal, financial_survey_converted$region, summary)
+by(financial_survey_converted$wdtotal, financial_survey_converted$region, sd)
+by(financial_survey_converted$wdtotal, financial_survey_converted$region, length)
+```
+
+
+### 3.2 - Linear Regression Analysis
+With our cleaned up and simplified data set, we used regression analysis to construct three different model.
+
+#### 3.2.1 Select top 10 high correlation predictor.
+```{r }
+cors <- sapply(financial_survey_converted, cor, y=financial_survey_converted$wdtotal)
+mask <- (rank(-abs(cors)) <= 10 )
+best10.pred <- financial_survey_converted[, mask]
+
+best10.pred <- subset(best10.pred, select = c(-wdtotal) )
+summary(best10.pred)
+```
+
+#### 3.2.2 Stepwise backword regression.
+```{r }
+full.model.best10 <- lm (wdtotal ~  fmsz27 + nbear27 + mtinc27 + ecfexhmr + ecfexvhr + watotpt + waprval + wdprmor   , data=financial_survey_converted)
+
+reduced.model.best10<- step (full.model.best10, direction = "backward")
+summary(reduced.model.best10)
+```
+
+#### 3.2.3 Stepwise forward regression.
+```{r }
+min.model.best10 <- lm (wdtotal ~ 1, data=financial_survey_converted)
+forward.model.best10 <- step(min.model.best10, direction="forward", scope = ( ~ fmsz27 + nbear27 + mtinc27 + ecfexhmr + ecfexvhr + watotpt + waprval + wdprmor))
+summary(forward.model.best10)
+```
+
+#### 3.2.4 Selection based on model and understanding of the data.
+After analyzing the data,we identified following independent variables out of the 85 parameters could be used to generate our model.Following variables were kept: 
+
+Response Variable  | Household Debt [wdtotal] 
+-------------------------- | ------------------------------------
+Quantitative Factor Variable | Family income after taxes [atinc27]
+Quantitative Factor Variable | Number of family members [fmsz27]
+Quantitative Factor Variable | Number of credit cards [dvfcrn]
+Quantitative Factor Variable | Student debt [wdsloan] 
+Quantitative Factor Variable | Child related expense [ecfexchr] 
+Quantitative Factor Variable | Subtotal-credit card & instalment debt [wdstcred] 
+Quantitative Factor Variable | Assets (continue basis) [watotpt] 
+Quantitative Factor Variable | Mortgage on principle residence [wdprmor] 
+Quantitative Factor Variable | Mortgage on other residence [wdstomor]
+Quantitative Factor Variable | Line of credit  [wdstloc]
+Quantitative Factor Variable | Net worth including pension [wnetwpg]
+Quantitative Factor Variable | Age of major income earner [ecpage] 
+Qualitative Factor Variable  | Number of earners in the family [nbear27]
+Qualitative Factor Variable  | Region [region] 
+Qualitative Factor Variable  | Level of education  [dvphlv2g] 
+Qualitative Factor Variable  | Sex of major income earner  [hcsex_r]
+
+Once we generated the model we found from the above only below variables were statistically significant.
+
+```{r }
+ reg_multi <- lm(wdtotal ~ wdprmor + nbear27 + wdsloan + wdstloc , data=financial_survey_converted)
+summary(reg_multi)
+```
+## Part4  Model comparision
+
+### 4.1 Comparing Models by using ANOVA
+Comparing the both forward and backword step model using anova returns a p value of 0 , indicating that both models are same.
+```{r }
+anova(reduced.model.best10, forward.model.best10)
+```
+
+Comparing Step model with custom model using anova retuns a p value less than 0.05, indicating that both models are different.
+
+```{r }
+anova(reduced.model.best10, reg_multi)
+```
+
+### 4.2 Diagnosing different linear models
+Diagostic plots for the both the models are show below. Based on the plots we can say these are pretty good regression models.
+
+#### 4.2.1 Step wise linear regression.
+```{r }
+plot(reduced.model.best10)
+```
+The points in the Residuals Vs Fitted Plot are radomly scattered with no pattern for both model.
+The points in the Normal Q-Q plot are more or less on the line, indicating that residuals follow a normal distribution.
+In both Scale-Location plot and Residual Vs Leverage plots, the points are in the a group with none too far from center.
+
+#### 4.2.2 Custom Model linear regression.
+```{r }
+plot(reg_multi)
+```
+Again based on the plots similar observation was found.
+The points in the Residuals Vs Fitted Plot are radomly scattered with no pattern for both model.
+The points in the Normal Q-Q plot are more or less on the line, indicating that residuals follow a normal distribution.
+In both Scale-Location plot and Residual Vs Leverage plots, the points are in the a group with none too far from center.
+
+## Part5  Application and Probability
+Our model addressess managerial and statistical question. For a Canadian household that fits the constraints of our model, we can predict with 95% confidence interval what their total debt is.
+
+In this example we have taken a random customer profile from the raw file, it actual wdtotal value is 150500.
+Step model predict a value of 191129.7 where as Custom model predict 187595.8
+
+
+
+```{r }
+customerProfile = as.data.frame(financial_survey_raw[80,])
+customerProfile$wdtotal
+
+predict(reduced.model.best10, subset(customerProfile, select = c(fmsz27 , nbear27 , mtinc27 , ecfexhmr , ecfexvhr , watotpt , waprval , wdprmor)))
+```
+```{r }
+predict(reg_multi, subset(customerProfile, select = c(wdprmor  , nbear27 , wdsloan  , wdstloc  )))
+```
+
