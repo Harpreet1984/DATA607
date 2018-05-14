@@ -1,6 +1,6 @@
 ---
 title: "CANADIAN HOUSEHOLD DEBT DETERMINANTS"
-author: "Harpreet Kaur Shoker, Krishna Rajan"
+
 output:
   html_document: default
   pdf_document: default
